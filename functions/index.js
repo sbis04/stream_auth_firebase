@@ -1,60 +1,105 @@
+const StreamChat = require("stream-chat").StreamChat;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const SecretManagerServiceClient = require("@google-cloud/secret-manager");
-const StreamChat = require("stream-chat").StreamChat;
+
 admin.initializeApp();
 
-// async function accessSecretVersion(secretKeyName) {
-//     const [secretVersion] = await secretClient.accessSecretVersion({
-//         name: secretKeyName,
-//     });
-//     const secret = secretVersion.payload.data.toString();
-//     return secret;
-// }
+const serverClient = StreamChat.getInstance(
+    functions.config().stream.key,
+    functions.config().stream.secret,
+);
 
-exports.newUserSignUp = functions.auth.user().onCreate((user) => {
-  const timestamp = admin.firestore.FieldValue.serverTimestamp();
-  admin.firestore().collection("users").doc(user.uid).set({
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-    photoURL: user.photoURL,
-    createdAt: timestamp,
-  });
-
-  console.log("New user created: ", user.uid);
+// When a user is deleted from Firebase their associated
+// Stream account is also deleted.
+exports.deleteStreamUser = functions.auth.user().onDelete((user, context) => {
+  return serverClient.deleteUser(user.uid);
 });
 
-exports.getStreamToken = functions.https.onCall((data, context) => {
-  const userID = data.uid;
-  const secretClient = new SecretManagerServiceClient();
+// Create a Stream user and return auth token.
+exports.createStreamUserAndGetToken = functions.https.onCall(
+    async (data, context) => {
+    // Checking that the user is authenticated.
+      if (!context.auth) {
+      // Throwing an HttpsError so that the client gets the error details.
+        throw new functions.https.HttpsError(
+            "failed-precondition",
+            "The function must be called " + "while authenticated.",
+        );
+      } else {
+        try {
+        // Create user using the serverClient.
+          await serverClient.upsertUser({
+            id: context.auth.uid,
+            name: context.auth.token.name,
+            email: context.auth.token.email,
+            image: context.auth.token.image,
+          });
 
-  const [streamAPIKeyVersion] = secretClient.accessSecretVersion({
-    name: "stream_api_key",
-  });
+          // / Create and return user auth token.
+          return serverClient.createToken(context.auth.uid);
+        } catch (err) {
+          console.error(
+              `Unable to create user with ID ${context.auth.uid} 
+              on Stream. Error ${err}`,
+          );
+          // Throwing an HttpsError so that the client gets the error details.
+          throw new functions.https.HttpsError(
+              "aborted",
+              "Could not create Stream user",
+          );
+        }
+      }
+    },
+);
 
-  const [streamAPISecretVersion] = secretClient.accessSecretVersion({
-    name: "stream_api_secret",
-  });
-
-  const streamAPIKey = streamAPIKeyVersion.payload.data.toString();
-  const streamAPISecret = streamAPISecretVersion.payload.data.toString();
-
-  // const streamAPIKey = await accessSecretVersion('stream_api_key');
-  // const streamAPISecret = await accessSecretVersion('stream_api_secret');
-
-  const streamClient = new StreamChat(streamAPIKey, streamAPISecret);
-  const token = streamClient.createToken(userID);
-
-  console.log("Stream token generated for user: ", userID);
-
-  return token;
+// Get Stream user token.
+exports.getStreamUserToken = functions.https.onCall((data, context) => {
+  // Checking that the user is authenticated.
+  if (!context.auth) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new functions.https.HttpsError(
+        "failed-precondition",
+        "The function must be called " + "while authenticated.",
+    );
+  } else {
+    try {
+      return serverClient.createToken(context.auth.uid);
+    } catch (err) {
+      console.error(
+          `Unable to get user token with ID ${context.auth.uid} 
+          on Stream. Error ${err}`,
+      );
+      // Throwing an HttpsError so that the client gets the error details.
+      throw new functions.https.HttpsError(
+          "aborted",
+          "Could not get Stream user",
+      );
+    }
+  }
 });
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+// Revoke the authenticated user's Stream chat token.
+exports.revokeStreamUserToken = functions.https.onCall((data, context) => {
+  // Checking that the user is authenticated.
+  if (!context.auth) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new functions.https.HttpsError(
+        "failed-precondition",
+        "The function must be called " + "while authenticated.",
+    );
+  } else {
+    try {
+      return serverClient.revokeUserToken(context.auth.uid);
+    } catch (err) {
+      console.error(
+          `Unable to revoke user token with ID ${context.auth.uid} 
+          on Stream. Error ${err}`,
+      );
+      // Throwing an HttpsError so that the client gets the error details.
+      throw new functions.https.HttpsError(
+          "aborted",
+          "Could not get Stream user",
+      );
+    }
+  }
+});
