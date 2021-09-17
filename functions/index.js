@@ -35,7 +35,7 @@ exports.createStreamUserAndGetToken = functions.https.onCall(
             image: context.auth.token.image,
           });
 
-          // / Create and return user auth token.
+          // Create and return user auth token.
           return serverClient.createToken(context.auth.uid);
         } catch (err) {
           console.error(
