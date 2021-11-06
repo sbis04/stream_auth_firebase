@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stream_auth_firebase/utils/authentication.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -13,6 +14,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _isRegistering = false;
 
@@ -64,8 +66,16 @@ class _RegisterPageState extends State<RegisterPage> {
               SizedBox(height: 16.0),
               TextFormField(
                 controller: _passwordController,
+                obscureText: true,
                 validator: (value) => _passwordValidator(value),
                 decoration: InputDecoration(hintText: 'Password'),
+              ),
+              SizedBox(height: 16.0),
+              TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                validator: (value) => _passwordValidator(value),
+                decoration: InputDecoration(hintText: 'Confirm Password'),
               ),
               SizedBox(height: 16.0),
               _isRegistering
@@ -73,12 +83,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   : ElevatedButton(
                       onPressed: () async {
                         if (_loginFormKey.currentState!.validate()) {
+                          if (_passwordController.text !=
+                              _confirmPasswordController.text) return;
+
                           setState(() {
                             _isRegistering = true;
                           });
 
-                          String? token =
-                              await _authentication.registerUsingEmailPassword(
+                          await _authentication.registerUsingEmailPassword(
                             context: context,
                             name: _nameController.text,
                             email: _emailController.text,
@@ -86,12 +98,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           );
 
                           setState(() {
-                            _isRegistering = true;
+                            _isRegistering = false;
                           });
-
-                          if (token != null) {
-                            print('Stream token: $token');
-                          }
                         }
                       },
                       child: const Text('Sign Up'),
