@@ -26,6 +26,17 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+	  <key>NSAllowsArbitraryLoads</key>
+	  <true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Used for Stream chat</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used for Stream chat</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Used for Stream chat</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
