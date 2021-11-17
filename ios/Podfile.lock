@@ -1,5 +1,5 @@
 PODS:
-  - cloud_functions (3.0.6):
+  - cloud_functions (3.1.1):
     - Firebase/Functions (= 8.9.0)
     - firebase_core
     - Flutter
@@ -48,11 +48,11 @@ PODS:
   - Firebase/Functions (8.9.0):
     - Firebase/CoreOnly
     - FirebaseFunctions (~> 8.9.0)
-  - firebase_auth (3.1.5):
+  - firebase_auth (3.2.0):
     - Firebase/Auth (= 8.9.0)
     - firebase_core
     - Flutter
-  - firebase_core (1.9.0):
+  - firebase_core (1.10.0):
     - Firebase/CoreOnly (= 8.9.0)
     - Flutter
   - FirebaseAuth (8.9.0):
@@ -218,14 +218,14 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/wakelock/ios"
 
 SPEC CHECKSUMS:
-  cloud_functions: 9ce6e31a4406b23aed94f994d73088b673076eaa
+  cloud_functions: 3c531e4a8ca86bcaf4f65c2ce6fe6b2964305a4c
   connectivity_plus: 5f0eb61093bec56935f21a1699dd2758bc895587
   DKImagePickerController: b5eb7f7a388e4643264105d648d01f727110fc3d
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
   file_picker: 3e6c3790de664ccf9b882732d9db5eaf6b8d4eb1
   Firebase: 13d8d96499e2635428d5bf0ec675df21f95d9a95
-  firebase_auth: 86102828222240509991057a51ae9e9952bcbb5b
-  firebase_core: 3aa324017663581c1d250b66518b86298fda337c
+  firebase_auth: 0d56cc4d105ff70d1547a7fcb10ee574ad05adf5
+  firebase_core: f770e033e790657b3505f04be4cb24c482912f11
   FirebaseAuth: 2b78b2a32c07b3ecfa4970bdf1d3632b8304099b
   FirebaseCore: 599ee609343eaf4941bd188f85e3aa077ffe325b
   FirebaseCoreDiagnostics: 5daa63f1c1409d981a2d5007daa100b36eac6a34
