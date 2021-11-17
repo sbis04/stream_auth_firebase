@@ -29,14 +29,14 @@ class _LoginPageState extends State<LoginPage> {
 
   _emailValidator(String? email) {
     if (email == null || email.isEmpty) {
-      return 'Please enter some text';
+      return 'Please enter a valid email';
     }
     return null;
   }
 
-  _passwordValidator(String? email) {
-    if (email == null || email.isEmpty) {
-      return 'Please enter some text';
+  _passwordValidator(String? password) {
+    if (password == null || password.isEmpty) {
+      return 'Please enter a password of 6 characters or more';
     }
     return null;
   }
