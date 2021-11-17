@@ -1,14 +1,12 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:stream_auth_firebase/screens/channel_list_page.dart';
-import 'package:stream_auth_firebase/secrets.dart';
-import 'package:stream_chat_flutter/stream_chat_flutter.dart' as sc;
+import 'package:stream_auth_firebase/utils/stream_client.dart';
 
 class Authentication {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFunctions functions = FirebaseFunctions.instance;
-  User? firebaseUser;
+  static User? firebaseUser;
 
   static SnackBar customSnackBar({required String content}) {
     return SnackBar(
@@ -18,44 +16,6 @@ class Authentication {
         style: TextStyle(color: Colors.redAccent, letterSpacing: 0.5),
       ),
     );
-  }
-
-  _initializeStream({
-    required BuildContext context,
-    required String token,
-    required User user,
-  }) async {
-    final client = sc.StreamChatClient(
-      streamKey,
-      logLevel: sc.Level.OFF,
-    );
-
-    await client.connectUser(
-      sc.User(
-        id: user.uid,
-        extraData: {
-          'name': user.displayName,
-          'image': user.photoURL,
-        },
-      ),
-      token,
-    );
-
-    final channel = client.channel('messaging', id: 'general');
-    await channel.watch();
-
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (context) => MaterialApp(
-        builder: (context, widget) {
-          return sc.StreamChat(
-            child: widget,
-            client: client,
-          );
-        },
-        debugShowCheckedModeBanner: false,
-        home: ChannelListPage(channel),
-      ),
-    ));
   }
 
   Future<bool> isSignedIn(BuildContext context) async {
@@ -70,11 +30,7 @@ class Authentication {
         String? token = results.data;
 
         if (token != null) {
-          _initializeStream(
-            context: context,
-            token: token,
-            user: firebaseUser!,
-          );
+          StreamClient.initialize(token, context);
         }
       } catch (e) {
         print('Error in fetching token: $e');
@@ -104,11 +60,7 @@ class Authentication {
       if (token != null) {
         print('Stream token retrieved (signed in)');
 
-        _initializeStream(
-          context: context,
-          token: token,
-          user: firebaseUser!,
-        );
+        StreamClient.initialize(token, context);
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -158,11 +110,7 @@ class Authentication {
       if (token != null) {
         print('Stream token retrieved (registered)');
 
-        _initializeStream(
-          context: context,
-          token: token,
-          user: firebaseUser!,
-        );
+        StreamClient.initialize(token, context);
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -190,6 +138,9 @@ class Authentication {
     final callable = functions.httpsCallable('revokeStreamUserToken');
     await callable();
     print('Stream user token revoked');
+
+    // Close connection
+    StreamClient.client.closeConnection();
 
     // Sign out Firebase.
     await auth.signOut();
